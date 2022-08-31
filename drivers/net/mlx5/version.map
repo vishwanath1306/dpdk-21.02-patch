@@ -1,0 +1,16 @@
+DPDK_21 {
+	global:
+	mlx5_manual_reg_mr;
+	mlx5_manual_dereg_mr;
+
+	local: *;
+};
+
+EXPERIMENTAL {
+	global:
+
+	# added in 20.02
+	rte_pmd_mlx5_get_dyn_flag_names;
+	# added in 20.11
+	rte_pmd_mlx5_sync_flow;
+};
