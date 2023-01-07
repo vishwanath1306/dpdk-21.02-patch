@@ -26,6 +26,7 @@
 #include "mlx5_autoconf.h"
 
 struct mlx5_priv;
+struct mlx5_mem_info;
 
 /* mlx5_rxtx.c */
 
