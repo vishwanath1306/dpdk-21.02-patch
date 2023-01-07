@@ -2874,6 +2874,41 @@ rte_pmd_mlx5_get_dyn_flag_names(char *names[], unsigned int n)
 }
 
 /**
+ * Dynamically register a region with NIC.
+ * Writes resulting lkey into lkey_out pointer.
+ * @param[in] port_id
+ *   port_id to start looking for device.
+ * @param[in] addr
+ *   starting address to register.
+ * @param[in] length
+ *   length of region to register
+ * @param[in] lkey_out
+ *   pointer to uint32_t to store resulting lkey of region.
+ *
+ * @return
+ *   pointer to ibv_mr if registration was successful; NULL if not.
+ */
+void *rte_pmd_mlx5_manual_reg_mr(uint8_t port_id, void *addr, size_t length, uint32_t *lkey_out)
+{
+    struct rte_eth_dev *dev = &rte_eth_devices[port_id];
+    struct mlx5_priv *priv = dev->data->dev_private;
+    struct ibv_mr *ibv_mr = mlx5_glue->reg_mr(priv->sh->cdev->pd, addr, length, IBV_ACCESS_LOCAL_WRITE);
+    if (ibv_mr && lkey_out) *lkey_out = rte_cpu_to_be_32(ibv_mr->lkey);
+    return ibv_mr;
+}
+
+/**
+ * Dynamically register a region with NIC.
+ * Writes resulting lkey into lkey_out pointer.
+ * @param[in] ibv_mr
+ *   Pointer to ibv_mr for deregistration.
+ */
+void rte_pmd_mlx5_manual_dereg_mr(void *ibv_mr)
+{
+    mlx5_glue->dereg_mr(ibv_mr);
+}
+
+/**
  * Look for the ethernet device belonging to mlx5 driver.
  *
  * @param[in] port_id

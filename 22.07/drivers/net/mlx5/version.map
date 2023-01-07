@@ -5,6 +5,9 @@ DPDK_22 {
 EXPERIMENTAL {
 	global:
 
+	# added for patch for manual reg and dereg
+	rte_pmd_mlx5_manual_reg_mr;
+	rte_pmd_mlx5_manual_dereg_mr;
 	# added in 20.02
 	rte_pmd_mlx5_get_dyn_flag_names;
 	# added in 20.11

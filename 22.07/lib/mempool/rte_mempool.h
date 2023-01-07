@@ -642,6 +642,12 @@ int rte_mempool_op_populate_default(struct rte_mempool *mp,
 typedef int (*rte_mempool_get_info_t)(const struct rte_mempool *mp,
 		struct rte_mempool_info *info);
 
+/**
+ * Run an additional callback when objects are put back into the cache or
+ * enqueued.
+ */
+typedef int (*rte_mempool_obj_free_t)(void *const *obj_table, unsigned int n);
+
 
 /** Structure defining mempool operations structure */
 struct rte_mempool_ops {
@@ -669,6 +675,11 @@ struct rte_mempool_ops {
 	 * Dequeue a number of contiguous object blocks.
 	 */
 	rte_mempool_dequeue_contig_blocks_t dequeue_contig_blocks;
+	/**
+	 * Optional callback to define how to free items before adding items to
+     * cache.
+	 */
+	rte_mempool_obj_free_t obj_free;
 } __rte_cache_aligned;
 
 #define RTE_MEMPOOL_MAX_OPS_IDX 16  /**< Max registered ops structs */
@@ -802,6 +813,30 @@ rte_mempool_ops_enqueue_bulk(struct rte_mempool *mp, void * const *obj_table,
 	rte_mempool_trace_ops_enqueue_bulk(mp, obj_table, n);
 	ops = rte_mempool_get_ops(mp->ops_index);
 	return ops->enqueue(mp, obj_table, n);
+}
+
+/**
+ * @internal Wrapper for mempool_ops obj_free callback.
+ *
+ * @param[in] mp
+ *   Pointer to the memory pool.
+ * @param[out] first_obj_table
+ *   Pointer to a table of void * pointers (first objects).
+ * @param[in] n
+ *   Number of blocks to get.
+ * @return
+ *   - 0: Success; got n objects.
+ *   - <0: Error; code of dequeue function.
+ */
+static inline int
+rte_mempool_ops_obj_free_bulk(struct rte_mempool *mp, void *const *obj_table, unsigned n)
+{
+    struct rte_mempool_ops *ops;
+    ops = rte_mempool_get_ops(mp->ops_index);
+    if (ops->obj_free != NULL) {
+        return ops->obj_free(obj_table, n);
+    }
+    return 0;
 }
 
 /**
@@ -1391,6 +1426,8 @@ static __rte_always_inline void
 rte_mempool_generic_put(struct rte_mempool *mp, void * const *obj_table,
 			unsigned int n, struct rte_mempool_cache *cache)
 {
+	/* Call user-defined free callback. */
+	rte_mempool_ops_obj_free_bulk(mp, obj_table, n);
 	rte_mempool_trace_generic_put(mp, obj_table, n, cache);
 	RTE_MEMPOOL_CHECK_COOKIES(mp, obj_table, n, 0);
 	rte_mempool_do_generic_put(mp, obj_table, n, cache);

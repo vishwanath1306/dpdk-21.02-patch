@@ -362,6 +362,12 @@ mlx5_rx_mb2mr(struct mlx5_rxq_data *rxq, struct rte_mbuf *mb)
 	uintptr_t addr = (uintptr_t)mb->buf_addr;
 	uint32_t lkey;
 
+    /* If lkey is present in private data of mbuf, return there */
+    struct mlx5_mem_info *m = (struct mlx5_mem_info *)((char *)mb + sizeof(struct rte_mbuf));
+    if (m->lkey_present == 1) {
+        return (uint32_t)m->lkey;
+    }
+
 	/* Linear search on MR cache array. */
 	lkey = mlx5_mr_lookup_lkey(mr_ctrl->cache, &mr_ctrl->mru,
 				   MLX5_MR_CACHE_N, addr);

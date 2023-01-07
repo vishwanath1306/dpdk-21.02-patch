@@ -1555,6 +1555,12 @@ struct mlx5_priv {
 #endif
 };
 
+struct mlx5_mem_info {
+    uint32_t lkey;
+    uint16_t lkey_present;
+    uint16_t refers_to_another;
+};
+
 #define PORT_ID(priv) ((priv)->dev_data->port_id)
 #define ETH_DEV(priv) (&rte_eth_devices[PORT_ID(priv)])
 

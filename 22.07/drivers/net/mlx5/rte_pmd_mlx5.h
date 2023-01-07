@@ -67,6 +67,33 @@ int rte_pmd_mlx5_sync_flow(uint16_t port_id, uint32_t domains);
 #define MLX5_EXTERNAL_RX_QUEUE_ID_MIN (UINT16_MAX - 1000 + 1)
 
 /**
+ * Dynamically register a region with NIC.
+ * Writes resulting lkey into lkey_out pointer.
+ * @param[in] port_id
+ *   port_id to start looking for device.
+ * @param[in] addr
+ *   starting address to register.
+ * @param[in] length
+ *   length of region to register
+ * @param[in] lkey_out
+ *   pointer to uint32_t to store resulting lkey of region.
+ *
+ * @return
+ *   pointer to ibv_mr if registration was successful; NULL if not.
+ */
+__rte_experimental
+void *rte_pmd_mlx5_manual_reg_mr(uint8_t port_id, void *addr, size_t length, uint32_t *lkey_out);
+
+/**
+ * Dynamically register a region with NIC.
+ * Writes resulting lkey into lkey_out pointer.
+ * @param[in] ibv_mr
+ *   Pointer to ibv_mr for deregistration.
+ */
+__rte_experimental
+void rte_pmd_mlx5_manual_dereg_mr(void *ibv_mr);
+
+/**
  * Update mapping between rte_flow queue index (16 bits) and HW queue index (32
  * bits) for RxQs which is created outside the PMD.
  *
